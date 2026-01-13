@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import User from "../models/user.model.js";
 
 const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -11,9 +11,9 @@ const generateToken = (userId) => {
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
-    if (!name || !email || !password) {
+    if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -22,28 +22,27 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await User.create({
-      name,
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
     });
 
     const token = generateToken(user._id);
 
-    res
-      .cookie("token", token, {
+    res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-      })
-      .status(201)
-      .json({
+      }).status(201).json({
         message: "User registered successfully",
         user: {
           id: user._id,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           email: user.email,
         },
       });
@@ -73,15 +72,12 @@ export const login = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    res
-      .cookie("token", token, {
+    res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-      })
-      .status(200)
-      .json({
-        message: "Login successful",
+      }).status(200).json({
+        message: "Loggedin successfully",
         user: {
           id: user._id,
           name: user.name,
@@ -95,12 +91,11 @@ export const login = async (req, res) => {
 
 
 export const logout = (req, res) => {
-  res
-    .cookie("token", "", {
+  res.cookie("token", "", {
       httpOnly: true,
       expires: new Date(0),
     })
-    .json({ message: "Logged out successfully" });
+    .json({ message: "Logged out successfully!" });
 };
 
 export const getMe = async (req, res) => {
