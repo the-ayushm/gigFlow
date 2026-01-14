@@ -20,10 +20,19 @@ const login = async (data) => {
 };
 
 
-  const register = async (data) => {
+const register = async (data) => {
+  try {
     const res = await api.post("/auth/register", data);
     setUser(res.data.user);
-  };
+    return { success: true };
+  } catch (err) {
+    return {
+      success: false,
+      message: err.response?.data?.message || "Registration failed",
+    };
+  }
+};
+
 
   const logout = async () => {
     await api.post("/auth/logout");
