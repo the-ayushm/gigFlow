@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Login() {
   const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
 
 const submit = async (e) => {
@@ -15,8 +18,11 @@ const submit = async (e) => {
 
   if (!result.success) {
     setError(result.message);
+  } else {
+    navigate("/dashboard"); // ✅ THIS WAS MISSING
   }
 };
+
 
 
   return (

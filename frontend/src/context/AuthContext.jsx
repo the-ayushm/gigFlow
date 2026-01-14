@@ -10,14 +10,16 @@ const login = async (data) => {
   try {
     const res = await api.post("/auth/login", data);
     setUser(res.data.user);
+
     return { success: true };
   } catch (err) {
     return {
       success: false,
-      message: err.response?.data?.message || "Login failed",
+      message: err.response?.data?.message || "Invalid credentials",
     };
   }
 };
+
 
 
 const register = async (data) => {
