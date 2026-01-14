@@ -14,23 +14,13 @@ function App() {
     <BrowserRouter>
       <Toaster position="top-right" />
       <Navbar />
-      <Routes>...</Routes>
-    </BrowserRouter>
-  );
-}
-
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Navbar />
 
       <Routes>
         <Route path="/" element={<Gigs />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/gigs" element={<Gigs />} />
-        <Route path="/gigs/:id" element={<GigDetails />} />
+        <Route path="/gigs/:id" element={<ProtectedRoute><GigDetails /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute> <Dashboard /></ProtectedRoute>}
         />
       </Routes>

@@ -1,18 +1,17 @@
 import express from "express";
+import auth from "../middleware/authMiddleware.js";
 import {
   createGig,
+  getMyGigs,
   getAllGigs,
-  getGigById,
+  getGigById
 } from "../controllers/gigController.js";
-import authMiddleware from "../middleware/authMiddleware.js";
-import { getMyGigs } from "../controllers/gigController.js";
-
 
 const router = express.Router();
-router.get("/", getAllGigs);
-router.get("/my", authMiddleware, getMyGigs);
-router.get("/:id", getGigById);
 
-router.post("/", authMiddleware, createGig);
+router.get("/", getAllGigs);
+router.get("/my", auth, getMyGigs);
+router.get("/:id", getGigById);
+router.post("/", auth, createGig);
 
 export default router;

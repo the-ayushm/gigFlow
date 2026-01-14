@@ -8,7 +8,6 @@ const generateToken = (userId) => {
   });
 };
 
-
 export const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -33,11 +32,14 @@ export const register = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    res.cookie("token", token, {
+    res
+      .cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      }).status(201).json({
+        sameSite: "lax", 
+      })
+      .status(201)
+      .json({
         message: "User registered successfully",
         user: {
           id: user._id,
@@ -51,7 +53,6 @@ export const register = async (req, res) => {
   }
 };
 
-
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -62,8 +63,10 @@ export const login = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-  return res.status(401).json({ message: "User not found. Please sign up." });
-}
+      return res
+        .status(401)
+        .json({ message: "User not found. Please sign up." });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -72,15 +75,19 @@ export const login = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    res.cookie("token", token, {
+    res
+      .cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      }).status(200).json({
-        message: "Loggedin successfully",
+        sameSite: "lax", 
+      })
+      .status(200)
+      .json({
+        message: "Logged in successfully",
         user: {
           id: user._id,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           email: user.email,
         },
       });
@@ -89,11 +96,12 @@ export const login = async (req, res) => {
   }
 };
 
-
 export const logout = (req, res) => {
-  res.cookie("token", "", {
+  res
+    .cookie("token", "", {
       httpOnly: true,
       expires: new Date(0),
+      sameSite: "lax", 
     })
     .json({ message: "Logged out successfully!" });
 };

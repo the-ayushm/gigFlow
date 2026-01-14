@@ -1,14 +1,15 @@
 import express from "express";
-import { createBid, getBidsForGig } from "../controllers/bidController.js";
-import authMiddleware from "../middleware/authMiddleware.js";
-import { hireFreelancer } from "../controllers/bidController.js";
-
+import auth from "../middleware/authMiddleware.js";
+import {
+  createBid,
+  getBidsForGig,
+  hireFreelancer
+} from "../controllers/bidController.js";
 
 const router = express.Router();
 
-router.post("/", authMiddleware, createBid);
-router.patch("/:bidId/hire", authMiddleware, hireFreelancer);
-router.get("/:gigId", authMiddleware, getBidsForGig);
-
+router.post("/", auth, createBid);
+router.get("/:gigId", auth, getBidsForGig);
+router.patch("/:bidId/hire", auth, hireFreelancer);
 
 export default router;
