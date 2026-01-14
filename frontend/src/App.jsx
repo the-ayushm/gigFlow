@@ -1,9 +1,30 @@
-import React from 'react'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Navbar from "./components/Navbar";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Gigs from "./pages/Gigs";
+import GigDetails from "./pages/GigDetails";
+import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 
 function App() {
   return (
-    <div className='text-4xl font-extrabold text-blue-500'>App</div>
-  )
+    <BrowserRouter>
+      <Navbar />
+
+      <Routes>
+        <Route path="/" element={<Gigs />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/gigs" element={<Gigs />} />
+        <Route path="/gigs/:id" element={<GigDetails />} />
+        <Route path="/dashboard" element={<ProtectedRoute> <Dashboard /></ProtectedRoute>}
+        />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

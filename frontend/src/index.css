@@ -1,1 +1,18 @@
 @import "tailwindcss";
+.input {
+  @apply border p-2 w-full;
+}
+.btn {
+  @apply bg-black text-white px-4 py-2;
+}
+.card {
+  @apply bg-white shadow-md rounded-lg p-6 w-full max-w-md;
+}
+
+.page {
+  @apply min-h-screen flex items-center justify-center bg-gray-100;
+}
+
+.title {
+  @apply text-2xl font-semibold mb-4 text-center;
+}
