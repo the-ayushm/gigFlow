@@ -11,12 +11,31 @@ import bidRoutes from "./routes/bidRoutes.js";
 dotenv.config();
 const app = express();
 
+// Needed on Render/other proxies so secure cookies work correctly.
+app.set("trust proxy", 1);
+
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({
-    origin: ["http://localhost:5173","https://gig-flow-servicehive.netlify.app"],
-    credentials: true
-}))
+
+const DEFAULT_ALLOWED_ORIGINS = ["http://localhost:5173"];
+const allowedOrigins = [
+  ...DEFAULT_ALLOWED_ORIGINS,
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow non-browser clients (Postman, curl) with no Origin header
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+  })
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/gigs", gigRoutes);

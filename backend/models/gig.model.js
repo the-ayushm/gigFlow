@@ -15,7 +15,7 @@ const gigSchema = new mongoose.Schema({
         required: true,
         min: 0,
     },
-    ownerId: {
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,

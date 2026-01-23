@@ -4,15 +4,25 @@ export const createGig = async (req, res) => {
   try {
     const { title, description, budget } = req.body;
 
-    if (!title || !description || !budget) {
-      return res.status(400).json({ message: "All fields are required!" });
+    // Title and description are required
+    if (!title || !description) {
+      return res.status(400).json({ message: "Title and description are required" });
+    }
+
+    // Budget is optional, but if provided, must be a valid number
+    let budgetNumber = 0;
+    if (budget) {
+      budgetNumber = Number(budget);
+      if (Number.isNaN(budgetNumber) || budgetNumber < 0) {
+        return res.status(400).json({ message: "Budget must be a valid number" });
+      }
     }
 
     const gig = await Gig.create({
       title,
       description,
-      budget,
-      ownerId: req.user._id,
+      budget: budgetNumber,
+      user: req.user._id,
     });
 
     res.status(201).json({
@@ -27,16 +37,8 @@ export const createGig = async (req, res) => {
 
 export const getAllGigs = async (req, res) => {
   try {
-    const { search } = req.query;
-
-    let filter = { status: "open" };
-
-    if (search) {
-      filter.title = { $regex: search, $options: "i" };
-    }
-
-    const gigs = await Gig.find(filter)
-      .populate("ownerId", "firstName lastName email")
+    const gigs = await Gig.find()
+      .populate("user", "firstName lastName email")
       .sort({ createdAt: -1 });
 
     res.status(200).json(gigs);
@@ -49,7 +51,7 @@ export const getAllGigs = async (req, res) => {
 export const getGigById = async (req, res) => {
   try {
     const gig = await Gig.findById(req.params.id)
-      .populate("ownerId", "firstName lastName email");
+      .populate("user", "firstName lastName email");
 
     if (!gig) {
       return res.status(404).json({ message: "Gig not found" });
@@ -64,7 +66,7 @@ export const getGigById = async (req, res) => {
 export const getMyGigs = async (req, res) => {
   try {
     const gigs = await Gig.find({
-      ownerId: req.user._id,
+      user: req.user._id,
     }).sort({ createdAt: -1 });
 
     res.json(gigs);
@@ -73,3 +75,20 @@ export const getMyGigs = async (req, res) => {
   }
 };
 
+export const deleteGig = async (req, res) => {
+  try {
+    const gig = await Gig.findById(req.params.id);
+    if (!gig) {
+      return res.status(404).json({ message: "Gig not found" });
+    }
+
+    if (gig.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await gig.deleteOne();
+    res.json({ message: "Gig deleted" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

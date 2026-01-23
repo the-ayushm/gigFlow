@@ -1,26 +1,49 @@
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
-    <nav className="flex justify-between p-4 border-b">
-      <h1 className="font-bold">GigFlow</h1>
+    <nav className="flex justify-between items-center p-4 border-b bg-white">
+      <Link to="/" className="font-bold text-xl">
+        GigFlow
+      </Link>
 
-      <div className="flex gap-4">
-        <a href="/gigs">Gigs</a>
+      <div className="flex items-center gap-4">
+        <Link to="/gigs" className="text-gray-700 hover:text-black">
+          Gigs
+        </Link>
 
         {user ? (
           <>
-            <a href="/dashboard">Dashboard</a>
-            <button onClick={logout} className="text-red-600">
+            <span className="text-gray-700">
+              Hi, {user.firstName}
+            </span>
+            <Link to="/dashboard" className="text-gray-700 hover:text-black">
+              Dashboard
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1 border rounded text-red-600 hover:bg-red-50"
+            >
               Logout
             </button>
           </>
         ) : (
           <>
-            <a href="/login">Login</a>
-            <a href="/register">Register</a>
+            <Link to="/login" className="text-gray-700 hover:text-black">
+              Login
+            </Link>
+            <Link to="/register" className="text-gray-700 hover:text-black">
+              Register
+            </Link>
           </>
         )}
       </div>

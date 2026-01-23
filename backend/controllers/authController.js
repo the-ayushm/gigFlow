@@ -8,6 +8,30 @@ const generateToken = (userId) => {
   });
 };
 
+const getCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    secure: isProd, // localhost http cannot set secure cookies
+    sameSite: isProd ? "none" : "lax", // cross-site only in prod (Netlify -> Render)
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+};
+
+const getClearCookieOptions = () => {
+  const { maxAge, ...rest } = getCookieOptions();
+  return rest;
+};
+
+const toSafeUser = (user) => ({
+  id: user._id,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email,
+});
+
 export const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -32,21 +56,12 @@ export const register = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    }).status(201)
+    res
+      .cookie("token", token, getCookieOptions())
+      .status(201)
       .json({
         message: "User registered successfully",
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-        },
+        user: toSafeUser(user),
       });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -75,22 +90,12 @@ export const login = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    })
+    res
+      .cookie("token", token, getCookieOptions())
       .status(200)
       .json({
         message: "Logged in successfully",
-        user: {
-          id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-        },
+        user: toSafeUser(user),
       });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -98,15 +103,18 @@ export const login = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.cookie("token", "", {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none",
-  path: "/",
-  expires: new Date(0),
-}).json({ message: "Logged out successfully!" });
+  // Must match the cookie options used when setting the cookie.
+  res
+    .clearCookie("token", getClearCookieOptions())
+    .status(200)
+    .json({ message: "Logged out successfully!" });
 };
 
 export const getMe = async (req, res) => {
-  res.json(req.user);
+  // authMiddleware sets req.user
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authorized" });
+  }
+
+  res.status(200).json({ user: toSafeUser(req.user) });
 };
