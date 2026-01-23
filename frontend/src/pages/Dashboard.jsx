@@ -26,7 +26,9 @@ export default function Dashboard() {
       const res = await api.get("/gigs/my");
       setGigs(res.data);
     } catch (err) {
-      // Error handled by interceptor
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+      }
     } finally {
       setLoading(false);
     }
@@ -38,7 +40,9 @@ export default function Dashboard() {
       setBids(res.data);
       setSelectedGig(gigId);
     } catch (err) {
-      // Error handled by interceptor
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+      }
     }
   };
 
@@ -46,10 +50,11 @@ export default function Dashboard() {
     try {
       await api.patch(`/bids/${bidId}/hire`);
       toast.success("Freelancer hired successfully!");
-      // Refresh bids list after hiring
       loadBids(selectedGig);
     } catch (err) {
-      if (err.response?.status !== 401) {
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+      } else {
         toast.error(err.response?.data?.message || "Failed to hire");
       }
     }
@@ -65,7 +70,9 @@ export default function Dashboard() {
       setShowModal(false);
       fetchGigs();
     } catch (err) {
-      if (err.response?.status !== 401) {
+      if (err.response?.status === 401) {
+        window.location.href = "/login";
+      } else {
         toast.error(err.response?.data?.message || "Failed to create gig");
       }
     } finally {
@@ -74,29 +81,27 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-gray-600">
-            Manage your gigs and hire freelancers
-          </p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+            <p className="text-gray-600">
+              Manage your gigs and hire freelancers
+            </p>
+          </div>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 font-medium transition-colors"
+          >
+            + Create Gig
+          </button>
         </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
-        >
-          + Create Gig
-        </button>
-      </div>
-
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* My Gigs Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">My Gigs</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold mb-5 text-gray-900">My Gigs</h2>
 
           {loading && (
             <p className="text-gray-500 text-sm">Loading...</p>
@@ -113,21 +118,20 @@ export default function Dashboard() {
             <div
               key={gig._id}
               onClick={() => loadBids(gig._id)}
-              className={`p-4 mb-3 rounded-lg cursor-pointer border-2 transition-colors ${
+              className={`p-4 mb-3 rounded-lg cursor-pointer border transition-colors ${
                 selectedGig === gig._id
                   ? "bg-black text-white border-black"
-                  : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                  : "bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
               }`}
             >
-              <h3 className="font-semibold text-base mb-1">{gig.title}</h3>
+              <h3 className="font-semibold text-base mb-2">{gig.title}</h3>
               <p className="text-sm">₹{gig.budget}</p>
             </div>
           ))}
         </div>
 
-        {/* Bids Section */}
-        <div className="md:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Bids</h2>
+        <div className="md:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold mb-5 text-gray-900">Bids</h2>
 
           {!selectedGig && (
             <div className="text-center py-8">
@@ -145,80 +149,107 @@ export default function Dashboard() {
           {bids.map((bid) => (
             <div
               key={bid._id}
-              className="border-2 border-gray-200 rounded-lg p-4 mb-3 bg-gray-50 flex justify-between items-center"
+              className="border border-gray-200 rounded-lg p-5 mb-4 bg-gray-50"
             >
-              <div>
-                <p className="font-semibold text-gray-800">
-                  {bid.user.firstName} {bid.user.lastName}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  ₹{bid.amount}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Status: <span className="font-medium text-gray-700">{bid.status}</span>
-                </p>
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <p className="font-semibold text-lg text-gray-900 mb-1">
+                    {bid.user.firstName} {bid.user.lastName}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-1">
+                    Bid Amount: <span className="font-medium text-gray-900">₹{bid.amount}</span>
+                  </p>
+                  <p className="text-sm">
+                    Status: <span className={`font-medium ${
+                      bid.status === "hired" ? "text-green-600" : "text-gray-600"
+                    }`}>
+                      {bid.status}
+                    </span>
+                  </p>
+                </div>
+
+                {bid.status === "pending" && (
+                  <button
+                    onClick={() => hire(bid._id)}
+                    className="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 font-medium transition-colors"
+                  >
+                    Hire
+                  </button>
+                )}
               </div>
 
-              {bid.status === "pending" && (
-                <button
-                  onClick={() => hire(bid._id)}
-                  className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800"
-                >
-                  Hire
-                </button>
-              )}
+              <div className="pt-4 border-t border-gray-300">
+                <p className="text-sm font-medium text-gray-700 mb-2">Message:</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{bid.message}</p>
+              </div>
             </div>
           ))}
+          </div>
         </div>
       </div>
 
-      {/* CREATE GIG MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            <h2 className="text-xl font-semibold mb-6 text-gray-900">
               Create New Gig
             </h2>
 
             <form onSubmit={createGig}>
-              <input
-                className="input mb-3"
-                placeholder="Gig Title"
-                value={form.title}
-                onChange={(e) =>
-                  setForm({ ...form, title: e.target.value })
-                }
-                required
-              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gig Title
+                </label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="Enter gig title"
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm({ ...form, title: e.target.value })
+                  }
+                  required
+                />
+              </div>
 
-              <textarea
-                className="input mb-3"
-                placeholder="Description"
-                value={form.description}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    description: e.target.value,
-                  })
-                }
-                required
-              />
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="Describe the gig..."
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      description: e.target.value,
+                    })
+                  }
+                  rows="4"
+                  required
+                />
+              </div>
 
-              <input
-                type="number"
-                className="input mb-4"
-                placeholder="Budget (₹) - Optional"
-                value={form.budget}
-                onChange={(e) =>
-                  setForm({ ...form, budget: e.target.value })
-                }
-              />
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Budget (₹) - Optional
+                </label>
+                <input
+                  type="number"
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                  placeholder="Enter budget"
+                  value={form.budget}
+                  onChange={(e) =>
+                    setForm({ ...form, budget: e.target.value })
+                  }
+                />
+              </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border rounded"
+                  className="px-5 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
                   disabled={creating}
                 >
                   Cancel
@@ -226,7 +257,7 @@ export default function Dashboard() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-4 py-2 bg-black text-white rounded disabled:opacity-50"
+                  className="px-5 py-2 bg-black text-white rounded-lg hover:bg-gray-800 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {creating ? "Creating..." : "Create"}
                 </button>

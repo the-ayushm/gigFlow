@@ -14,7 +14,6 @@ export default function Register() {
   });
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate("/dashboard");

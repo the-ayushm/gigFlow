@@ -9,7 +9,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate("/dashboard");
@@ -66,6 +65,6 @@ export default function Login() {
           </button>
         </form>
       </div>
-    </div>
+    </div> 
   );
 }

@@ -4,25 +4,16 @@ export const createGig = async (req, res) => {
   try {
     const { title, description, budget } = req.body;
 
-    // Title and description are required
-    if (!title || !description) {
-      return res.status(400).json({ message: "Title and description are required" });
-    }
-
-    // Budget is optional, but if provided, must be a valid number
-    let budgetNumber = 0;
-    if (budget) {
-      budgetNumber = Number(budget);
-      if (Number.isNaN(budgetNumber) || budgetNumber < 0) {
-        return res.status(400).json({ message: "Budget must be a valid number" });
-      }
+    if (!title || !description || !budget) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     const gig = await Gig.create({
       title,
       description,
-      budget: budgetNumber,
+      budget: budget,
       user: req.user._id,
+      status: "open",
     });
 
     res.status(201).json({
@@ -34,11 +25,10 @@ export const createGig = async (req, res) => {
   }
 };
 
-
 export const getAllGigs = async (req, res) => {
   try {
     const gigs = await Gig.find()
-      .populate("user", "firstName lastName email")
+      .populate("user", "firstName lastName")
       .sort({ createdAt: -1 });
 
     res.status(200).json(gigs);
@@ -47,11 +37,12 @@ export const getAllGigs = async (req, res) => {
   }
 };
 
-
 export const getGigById = async (req, res) => {
   try {
-    const gig = await Gig.findById(req.params.id)
-      .populate("user", "firstName lastName email");
+    const gig = await Gig.findById(req.params.id).populate(
+      "user",
+      "firstName lastName email"
+    );
 
     if (!gig) {
       return res.status(404).json({ message: "Gig not found" });
@@ -65,19 +56,20 @@ export const getGigById = async (req, res) => {
 
 export const getMyGigs = async (req, res) => {
   try {
-    const gigs = await Gig.find({
-      user: req.user._id,
-    }).sort({ createdAt: -1 });
+    const gigs = await Gig.find({ user: req.user._id }).sort({
+      createdAt: -1,
+    });
 
-    res.json(gigs);
-  } catch (err) {
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(200).json(gigs);
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 export const deleteGig = async (req, res) => {
   try {
     const gig = await Gig.findById(req.params.id);
+
     if (!gig) {
       return res.status(404).json({ message: "Gig not found" });
     }
@@ -87,8 +79,9 @@ export const deleteGig = async (req, res) => {
     }
 
     await gig.deleteOne();
-    res.json({ message: "Gig deleted" });
-  } catch (err) {
+
+    res.status(200).json({ message: "Gig deleted successfully" });
+  } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
 };

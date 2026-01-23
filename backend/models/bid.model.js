@@ -16,6 +16,11 @@ const bidSchema = new mongoose.Schema({
         required: true,
         min: 0,
     },
+    message: {
+        type: String,
+        required: true,
+        trim: true,
+    },
     status: {
         type: String,
         enum: ["pending", "hired"],
