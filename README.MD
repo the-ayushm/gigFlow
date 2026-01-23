@@ -33,7 +33,7 @@ NODE_ENV=development
 2. Install backend dependencies:
    - cd backend
    - npm install
-   - npm run dev
+   - node server.js
 
 3. Install frontend dependencies:
    - cd frontend
